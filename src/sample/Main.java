@@ -14,11 +14,12 @@ import javafx.scene.text.Text;
 import java.io.*;
 
 
+
 public class Main extends Application {
     static String name;
     static WorkoutsList workoutList = new WorkoutsList();
     Scene mainPageScene, maxesScene, newWorkoutScene, viewWorkoutsScene, helpScene, compareScene;
-
+    QuickSort qs = new QuickSort();
     @Override
     public void start(Stage primaryStage) throws Exception {
 
@@ -201,9 +202,9 @@ public class Main extends Application {
 
         });
 
+        //Sort button that utilizes the QuickSort class
         sortButton.setOnAction(e -> {
-            BubbleSort bs = new BubbleSort();
-            workoutList = bs.sortStrings(workoutList, workoutList.size());
+            this.workoutList = qs.quickSort(workoutList,0, workoutList.size() -1);
         });
 
 
@@ -299,7 +300,6 @@ public class Main extends Application {
 
 
             compareAlertDialog.showAndWait();
-//                       primaryStage.setScene(mainPageScene);
 
 
         });
@@ -336,7 +336,7 @@ public class Main extends Application {
         }
 
     }
-    //
+
     // Deserialization
     // Get object from a file.
     public void readObjectFromFile() throws IOException, ClassNotFoundException {
@@ -371,6 +371,3 @@ public class Main extends Application {
     }
 
 }
-/**
- * needs to sort on opening file
- */
