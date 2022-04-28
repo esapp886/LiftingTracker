@@ -2,10 +2,10 @@ package sample;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 
-class WorkoutsList extends ArrayList<Workout> {
+class WorkoutsList extends LinkedList<Workout> {
     LocalDateTime dateTime = LocalDateTime.now();
 
 

@@ -1,4 +1,5 @@
 package sample;
+
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -11,15 +12,20 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.text.Text;
-import java.io.*;
 
+import java.io.*;
+import java.util.LinkedList;
+import java.util.Queue;
 
 
 public class Main extends Application {
-    static String name;
     static WorkoutsList workoutList = new WorkoutsList();
+    static WorkoutsList sortedWorkoutList = new WorkoutsList();
     Scene mainPageScene, maxesScene, newWorkoutScene, viewWorkoutsScene, helpScene, compareScene;
     QuickSort qs = new QuickSort();
+    Queue<Workout> queue = new WorkoutsList();
+
+
     @Override
     public void start(Stage primaryStage) throws Exception {
 
@@ -40,7 +46,7 @@ public class Main extends Application {
         maxButton.setGraphic(maxImage);
         Button workoutButton = new Button("New workout");
         workoutButton.setGraphic(newWorkoutImage);
-        Button viewWorkouts = new Button("View past workouts");
+        Button viewWorkouts = new Button("Load workouts");
         viewWorkouts.setGraphic(viewWorkoutImage);
         Button helpButton = new Button("Help");
         helpButton.setGraphic(helpImage);
@@ -112,10 +118,8 @@ public class Main extends Application {
                     Integer.parseInt(newWeightInput.getText()));
 
 
-
             System.out.println("New Workout added: " + newWorkout.getTitle());
             Text actionStatus = new Text();
-
 
 
             // clears list
@@ -132,7 +136,7 @@ public class Main extends Application {
             try {
                 this.writeObjectToFile();
 
-            }catch(IOException ex ){
+            } catch (IOException ex) {
                 ex.printStackTrace();
             }
         });
@@ -144,47 +148,50 @@ public class Main extends Application {
         Button loadWorkouts = new Button("Load Workouts");
         Button compareButton = new Button("Compare Workouts");
         Button sortButton = new Button("Sort");
+        Button nextButton = new Button("Next");
+
 
         VBox viewWorkoutsLayout = new VBox();
         viewWorkoutsLayout.setStyle("-fx-background-color: #ffffff ");
         // add a label for all attributes
         viewWorkoutsScene = new Scene(viewWorkoutsLayout, 500, 500);
+
+
+        Label labelcounter = new Label();
+
         Label label = new Label();
         Label label2 = new Label();
         Label label3 = new Label();
         Label label4 = new Label();
         Label label5 = new Label();
-        Label label6 = new Label();
         viewWorkouts.setOnAction(e -> {
-            // for loop to retrieve data
-            for (int i = 0; i < workoutList.size(); i++) {
 
-                if(i == 0 ){
-                    label6.setText("Date: " + workoutList.getDateTime());
-                    label.setText("\tWorkout: " + workoutList.get(i).getTitle());
-                    label2.setText("\tReps: " + String.valueOf(workoutList.get(i).getReps()));
-                    label3.setText("\tSets: " + String.valueOf(workoutList.get(i).getSets()));
-                    label4.setText("\tWeight: " + String.valueOf(workoutList.get(i).getWeight()) + " lbs");
-                    label5.setText("\tOne Rep Max: " + String.valueOf(workoutList.get(i).OneRepMax()) + " lbs");
-                    viewWorkoutsLayout.getChildren().addAll(new Label(label6.getText()), new Label(label.getText()), new Label(label2.getText()), new Label(label3.getText()),
-                            new Label(label4.getText()), new Label(label5.getText()));
-                } else{
-                    // display the remaining Workoutlist without the date.
-                    label.setText("\n\tWorkout: " + workoutList.get(i).getTitle());
-                    label2.setText("\tReps: " + String.valueOf(workoutList.get(i).getReps()));
-                    label3.setText("\tSets: " + String.valueOf(workoutList.get(i).getSets()));
-                    label4.setText("\tWeight: " + String.valueOf(workoutList.get(i).getWeight()) + " lbs");
-                    label5.setText("\tOne Rep Max: " + String.valueOf(workoutList.get(i).OneRepMax()) + " lbs");
-                    viewWorkoutsLayout.getChildren().addAll( new Label(label.getText()), new Label(label2.getText()), new Label(label3.getText()),
-                            new Label(label4.getText()), new Label(label5.getText()));
+            if (workoutList.size() == 0) {
+                try {
+                    this.readObjectFromFile();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                } catch (ClassNotFoundException classNotFoundException) {
+                    classNotFoundException.printStackTrace();
                 }
+            } else {
+                queue = workoutList;
 
 
+                // display the remaining Workoutlist without the date.
+                labelcounter.setText("\n\tWorkouts Left: " + queue.size());
+                label.setText("\n\tWorkout: " + queue.peek().getTitle());
+                label2.setText("\tReps: " + String.valueOf(queue.peek().getReps()));
+                label3.setText("\tSets: " + String.valueOf(queue.peek().getSets()));
+                label4.setText("\tWeight: " + String.valueOf(queue.peek().getWeight()) + " lbs");
+                label5.setText("\tOne Rep Max: " + String.valueOf(queue.peek().OneRepMax()) + " lbs");
+                viewWorkoutsLayout.getChildren().addAll(new Label(labelcounter.getText()), new Label(label.getText()), new Label(label2.getText()), new Label(label3.getText()),
+                        new Label(label4.getText()), new Label(label5.getText()));
 
-
+                viewWorkoutsLayout.getChildren().addAll(returnButton3, loadWorkouts, compareButton, sortButton, nextButton);
+                primaryStage.setScene(viewWorkoutsScene);
             }
-            viewWorkoutsLayout.getChildren().addAll(returnButton3, loadWorkouts, compareButton, sortButton);
-            primaryStage.setScene(viewWorkoutsScene);
+
 
         });
 
@@ -204,16 +211,14 @@ public class Main extends Application {
 
         //Sort button that utilizes the QuickSort class
         sortButton.setOnAction(e -> {
-            this.workoutList = qs.quickSort(workoutList,0, workoutList.size() -1);
+            sortedWorkoutList = qs.quickSort(workoutList, 0, workoutList.size() - 1);
+
         });
-
-
-
 
 
         // loads the file
         loadWorkouts.setOnAction(e -> {
-            try{
+            try {
                 this.readObjectFromFile();
 
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -228,9 +233,9 @@ public class Main extends Application {
                 viewWorkoutsLayout.getChildren().clear();
 
 
-            } catch(ClassNotFoundException ex){
+            } catch (ClassNotFoundException ex) {
                 ex.printStackTrace();
-            } catch(IOException ex){
+            } catch (IOException ex) {
                 ex.printStackTrace();
 
             }
@@ -271,22 +276,22 @@ public class Main extends Application {
         TextField compareText = new TextField();
 
 
-        compareLayout.getChildren().addAll(compareLabel,compareText,returnButton5, compareWorkoutButton);
+        compareLayout.getChildren().addAll(compareLabel, compareText, returnButton5, compareWorkoutButton);
 
         compareWorkoutButton.setOnAction(e -> {
             // compare text field input with workoutlist title spot
             String foundWorkouts = "";
-            for(int i = 0 ; i < workoutList.size(); i++){
+            for (int i = 0; i < workoutList.size(); i++) {
 
-                try{
-                    if(compareText.getText().equals(workoutList.get(i).getTitle())){
-                        System.out.println("found " + workoutList.get(i).toString() );
+                try {
+                    if (compareText.getText().equals(workoutList.get(i).getTitle())) {
+                        System.out.println("found " + workoutList.get(i).toString());
                         //add workoutlist that is equal to compare text to found workouts
                         foundWorkouts += workoutList.get(i).toString() + " \n";
 
                     }
 
-                } catch (Exception exe){
+                } catch (Exception exe) {
                     System.out.println("could not find");
 
                 }
@@ -351,19 +356,19 @@ public class Main extends Application {
             System.out.println("Uploaded");
 
 
-
         } catch (Exception exception) {
             System.out.println(exception);
         }
 
 
     }
+
     // recursive method
-    public static void count(int n){
+    public static void count(int n) {
         //base case
-        if (n== 0){
+        if (n == 0) {
             System.out.println("Let's get it on!");
-        }else {
+        } else {
             System.out.println(n);
             n--;
             count(n); // recursion
