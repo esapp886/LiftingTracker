@@ -165,7 +165,7 @@ public class Main extends Application {
         Label label4 = new Label();
         Label label5 = new Label();
         viewWorkouts.setOnAction(e -> {
-
+            //checks workoutslist and loads if empty
             if (workoutList.size() == 0) {
                 try {
                     this.readObjectFromFile();
@@ -175,7 +175,7 @@ public class Main extends Application {
                     classNotFoundException.printStackTrace();
                 }
             } else {
-                queue = workoutList;
+                this.queue = workoutList;
 
 
                 // display the remaining Workoutlist without the date.
@@ -193,6 +193,10 @@ public class Main extends Application {
             }
 
 
+        });
+        //next button action to queue
+        nextButton.setOnAction(e ->{
+            this.queue.poll();
         });
 
 
