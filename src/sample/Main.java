@@ -13,14 +13,13 @@ import javafx.stage.Stage;
 import javafx.scene.text.Text;
 import java.io.*;
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.Queue;
 
 
 public class Main extends Application {
     static WorkoutsList workoutList = new WorkoutsList();
     static WorkoutsList sortedWorkoutList = new WorkoutsList();
-    static Scene mainPageScene, maxesScene, newWorkoutScene, viewWorkoutsScene, helpScene, compareScene;
+    static Scene mainPageScene, maxesScene, newWorkoutScene, viewWorkoutsScene, helpScene, compareScene, searchScene;
     QuickSort qs = new QuickSort();
     static Queue<Workout> queue = new WorkoutsList();
 
@@ -31,6 +30,8 @@ public class Main extends Application {
     static Label label4 = new Label();
     static Label label5 = new Label();
 
+    static TextField searchForOneRepMaxInput = new TextField();
+
     static VBox viewWorkoutsLayout = new VBox();
     static Stage primaryStage;
 
@@ -39,6 +40,10 @@ public class Main extends Application {
     static Button sortButton = new Button("Sort");
     static Button nextButton = new Button("Next");
     static Button findHighestMaxButton = new Button("Highest Max");
+    static Button searchOneRepMaxButton = new Button("Search Max");
+    static Button searchButton = new Button("Search");
+
+
     Hashtable<Integer, Workout> workoutHashTable
             = new Hashtable<Integer, Workout>();
 
@@ -208,17 +213,54 @@ public class Main extends Application {
             this.clearLabels();
             this.generateLoadWorkoutView();
         });
+
         //button action that loads the workoutlist into a hashtable
         findHighestMaxButton.setOnAction(e ->{
             System.out.println("BST implementation");
-            for(Workout w: workoutList) {
-                bst.insert(w.OneRepMax());
-                workoutHashTable.put(w.OneRepMax(), w);
-            }
 
             String max = "Max rep of all workouts in the file: "+bst.maxValue(bst.root);
             this.generateGenericAlert("High Rep Max", max,"");
 
+        });
+
+        // perform search view
+        searchButton.setOnAction(e->{
+            int keyToFind = Integer.parseInt(searchForOneRepMaxInput.getText());
+
+            //load workoutlist into bst.
+            for(Workout w: workoutList) {
+                bst.insert(w.OneRepMax()); //adds one rep max to the bst key node
+            }
+
+            for(Workout w: workoutList) {
+                workoutHashTable.put(w.OneRepMax(), w); //adds workout to hashtable with key = 1rep max and value = workout
+            }
+
+            if(bst.search(keyToFind)) {
+                workoutHashTable.forEach((k, v) -> {
+                    if(k == keyToFind){
+                        String header = "Results found:\n" + v.toString();
+                        this.generateGenericAlert("One Rep Max Result", header,"" );
+                        primaryStage.setScene(viewWorkoutsScene);
+                    }
+                });
+            } else {
+                this.generateGenericAlert("One Rep Max Result","No Results were found.","" );
+            }
+
+             primaryStage.setScene(viewWorkoutsScene);
+        });
+
+        // create new scene for one rep max
+        searchOneRepMaxButton.setOnAction(e ->{
+            VBox searchLayout = new VBox();
+            searchScene = new Scene(searchLayout, 500, 500);
+
+            Label searchForOneRepMaxLabel = new Label("Search for One Rep Max");
+
+            searchLayout.getChildren().addAll(searchForOneRepMaxLabel, searchForOneRepMaxInput, searchButton );
+
+            primaryStage.setScene(searchScene);
         });
 
 
@@ -386,12 +428,15 @@ public class Main extends Application {
                 classNotFoundException.printStackTrace();
             }
         } else {
+            //load queue for current workouts
             queue = workoutList;
+
+
             setWorkoutLabels();
             viewWorkoutsLayout.getChildren().addAll(new Label(labelCounter.getText()), new Label(label.getText()), new Label(label2.getText()), new Label(label3.getText()),
                     new Label(label4.getText()), new Label(label5.getText()));
 
-            viewWorkoutsLayout.getChildren().addAll(returnButton3, compareButton, sortButton, nextButton, findHighestMaxButton);
+            viewWorkoutsLayout.getChildren().addAll(returnButton3, compareButton, sortButton, nextButton, findHighestMaxButton, searchOneRepMaxButton);
             primaryStage.setScene(viewWorkoutsScene);
         }
 
