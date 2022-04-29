@@ -1,6 +1,6 @@
 package sample;
-
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -12,24 +12,41 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.text.Text;
-
 import java.io.*;
-import java.util.LinkedList;
 import java.util.Queue;
 
 
 public class Main extends Application {
     static WorkoutsList workoutList = new WorkoutsList();
     static WorkoutsList sortedWorkoutList = new WorkoutsList();
-    Scene mainPageScene, maxesScene, newWorkoutScene, viewWorkoutsScene, helpScene, compareScene;
+    static Scene mainPageScene, maxesScene, newWorkoutScene, viewWorkoutsScene, helpScene, compareScene;
     QuickSort qs = new QuickSort();
-    Queue<Workout> queue = new WorkoutsList();
+    static Queue<Workout> queue = new WorkoutsList();
+
+    static Label labelCounter = new Label();
+    static Label label = new Label();
+    static Label label2 = new Label();
+    static Label label3 = new Label();
+    static Label label4 = new Label();
+    static Label label5 = new Label();
+
+    static VBox viewWorkoutsLayout = new VBox();
+    static Stage primaryStage;
+
+    static Button returnButton3 = new Button("Return");
+    static Button loadWorkouts = new Button("Load Workouts");
+    static Button compareButton = new Button("Compare Workouts");
+    static Button sortButton = new Button("Sort");
+    static Button nextButton = new Button("Next");
+
+
+    static Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
 
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-
+        this.primaryStage = primaryStage;
         // Call help class
         Help help = new Help();
 
@@ -144,59 +161,32 @@ public class Main extends Application {
 
         //********************************End of New workout button**************************************************
 
-        Button returnButton3 = new Button("Return");
-        Button loadWorkouts = new Button("Load Workouts");
-        Button compareButton = new Button("Compare Workouts");
-        Button sortButton = new Button("Sort");
-        Button nextButton = new Button("Next");
 
 
-        VBox viewWorkoutsLayout = new VBox();
+
         viewWorkoutsLayout.setStyle("-fx-background-color: #ffffff ");
         // add a label for all attributes
         viewWorkoutsScene = new Scene(viewWorkoutsLayout, 500, 500);
 
 
-        Label labelcounter = new Label();
-
-        Label label = new Label();
-        Label label2 = new Label();
-        Label label3 = new Label();
-        Label label4 = new Label();
-        Label label5 = new Label();
         viewWorkouts.setOnAction(e -> {
-            //checks workoutslist and loads if empty
-            if (workoutList.size() == 0) {
-                try {
-                    this.readObjectFromFile();
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                } catch (ClassNotFoundException classNotFoundException) {
-                    classNotFoundException.printStackTrace();
-                }
-            } else {
-                this.queue = workoutList;
-
-
-                // display the remaining Workoutlist without the date.
-                labelcounter.setText("\n\tWorkouts Left: " + queue.size());
-                label.setText("\n\tWorkout: " + queue.peek().getTitle());
-                label2.setText("\tReps: " + String.valueOf(queue.peek().getReps()));
-                label3.setText("\tSets: " + String.valueOf(queue.peek().getSets()));
-                label4.setText("\tWeight: " + String.valueOf(queue.peek().getWeight()) + " lbs");
-                label5.setText("\tOne Rep Max: " + String.valueOf(queue.peek().OneRepMax()) + " lbs");
-                viewWorkoutsLayout.getChildren().addAll(new Label(labelcounter.getText()), new Label(label.getText()), new Label(label2.getText()), new Label(label3.getText()),
-                        new Label(label4.getText()), new Label(label5.getText()));
-
-                viewWorkoutsLayout.getChildren().addAll(returnButton3, loadWorkouts, compareButton, sortButton, nextButton);
-                primaryStage.setScene(viewWorkoutsScene);
-            }
-
-
+            this.generateLoadWorkoutView();
         });
+
         //next button action to queue
         nextButton.setOnAction(e ->{
             this.queue.poll();
+            viewWorkoutsLayout.getChildren().clear();
+            if(this.queue.size() == 0){
+                this.generateGenericAlert("Workout Complete","You have completed your workout","thank you");
+
+                }else{
+                this.setWorkoutLabels();
+                viewWorkoutsLayout.getChildren().addAll(new Label(labelCounter.getText()), new Label(label.getText()), new Label(label2.getText()), new Label(label3.getText()),
+                        new Label(label4.getText()), new Label(label5.getText()), returnButton3, loadWorkouts, compareButton, sortButton, nextButton);
+            }
+
+
         });
 
 
@@ -225,14 +215,8 @@ public class Main extends Application {
             try {
                 this.readObjectFromFile();
 
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                this.generateGenericAlert("Uploaded new workout", "Uploaded new workout", "a new workout has been added.");
 
-                alert.setTitle("Uploaded new workout");
-                alert.setHeaderText("New Workout Added...");
-                alert.setContentText("a new workout has been added.");
-
-
-                alert.showAndWait();
                 primaryStage.setScene(mainPageScene);
                 viewWorkoutsLayout.getChildren().clear();
 
@@ -301,14 +285,11 @@ public class Main extends Application {
                 }
             }
 
-            Alert compareAlertDialog = new Alert(Alert.AlertType.INFORMATION);
+            String title = "Compared Workouts " + compareText.getText();
+            String header = "Here are the results of " + compareText.getText();
+            String content = foundWorkouts;
 
-            compareAlertDialog.setTitle("Compared Workouts " + compareText.getText());
-            compareAlertDialog.setHeaderText("Here are the results of " + compareText.getText());
-            compareAlertDialog.setContentText(foundWorkouts);
-
-
-            compareAlertDialog.showAndWait();
+            this.generateGenericAlert(title, header, content);
 
 
         });
@@ -348,7 +329,7 @@ public class Main extends Application {
 
     // Deserialization
     // Get object from a file.
-    public void readObjectFromFile() throws IOException, ClassNotFoundException {
+    public static void readObjectFromFile() throws IOException, ClassNotFoundException {
         FileChooser file = new FileChooser();
         file.getExtensionFilters().add(new FileChooser.ExtensionFilter("WRK files (*.wrk)", "*.wrk"));
         File selectedFile = file.showOpenDialog(null);
@@ -377,6 +358,60 @@ public class Main extends Application {
             n--;
             count(n); // recursion
         }
+    }
+    //method to set the workout labels for queue
+    public static void setWorkoutLabels(){
+        labelCounter.setText("\n\tWorkouts Left: " + queue.size());
+        label.setText("\n\tWorkout: " + queue.peek().getTitle());
+        label2.setText("\tReps: " + String.valueOf(queue.peek().getReps()));
+        label3.setText("\tSets: " + String.valueOf(queue.peek().getSets()));
+        label4.setText("\tWeight: " + String.valueOf(queue.peek().getWeight()) + " lbs");
+        label5.setText("\tOne Rep Max: " + String.valueOf(queue.peek().OneRepMax()) + " lbs");
+    }
+
+
+    // method to clear the queue data
+    public static void clearLabels(){
+        labelCounter.setText("");
+        label.setText("");
+        label2.setText("");
+        label3.setText("");
+        label4.setText("");
+        label5.setText("");
+    }
+
+    public static void generateLoadWorkoutView(){
+
+
+        //checks workoutslist and loads if empty
+        if (workoutList.size() == 0) {
+            try {
+                readObjectFromFile();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            } catch (ClassNotFoundException classNotFoundException) {
+                classNotFoundException.printStackTrace();
+            }
+        } else {
+            queue = workoutList;
+            setWorkoutLabels();
+            viewWorkoutsLayout.getChildren().addAll(new Label(labelCounter.getText()), new Label(label.getText()), new Label(label2.getText()), new Label(label3.getText()),
+                    new Label(label4.getText()), new Label(label5.getText()));
+
+            viewWorkoutsLayout.getChildren().addAll(returnButton3, loadWorkouts, compareButton, sortButton, nextButton);
+            primaryStage.setScene(viewWorkoutsScene);
+        }
+
+
+    }
+
+    public static void generateGenericAlert(String title, String header, String content){
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+
+
+        alert.showAndWait();
     }
 
 }

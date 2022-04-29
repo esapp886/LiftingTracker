@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 
-
+    //Change Arraylist to linkedlist
 class WorkoutsList extends LinkedList<Workout> {
     LocalDateTime dateTime = LocalDateTime.now();
 
