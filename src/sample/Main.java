@@ -1,6 +1,5 @@
 package sample;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -13,6 +12,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.text.Text;
 import java.io.*;
+import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.Queue;
 
 
@@ -34,14 +35,15 @@ public class Main extends Application {
     static Stage primaryStage;
 
     static Button returnButton3 = new Button("Return");
-    static Button loadWorkouts = new Button("Load Workouts");
     static Button compareButton = new Button("Compare Workouts");
     static Button sortButton = new Button("Sort");
     static Button nextButton = new Button("Next");
-
+    static Button findHighestMaxButton = new Button("Highest Max");
+    Hashtable<Integer, Workout> workoutHashTable
+            = new Hashtable<Integer, Workout>();
 
     static Alert alert = new Alert(Alert.AlertType.INFORMATION);
-
+    static BinarySearchTree  bst = new BinarySearchTree();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -161,9 +163,6 @@ public class Main extends Application {
 
         //********************************End of New workout button**************************************************
 
-
-
-
         viewWorkoutsLayout.setStyle("-fx-background-color: #ffffff ");
         // add a label for all attributes
         viewWorkoutsScene = new Scene(viewWorkoutsLayout, 500, 500);
@@ -179,14 +178,12 @@ public class Main extends Application {
             viewWorkoutsLayout.getChildren().clear();
             if(this.queue.size() == 0){
                 this.generateGenericAlert("Workout Complete","You have completed your workout","thank you");
-
+                primaryStage.setScene(mainPageScene);
                 }else{
                 this.setWorkoutLabels();
                 viewWorkoutsLayout.getChildren().addAll(new Label(labelCounter.getText()), new Label(label.getText()), new Label(label2.getText()), new Label(label3.getText()),
-                        new Label(label4.getText()), new Label(label5.getText()), returnButton3, loadWorkouts, compareButton, sortButton, nextButton);
+                        new Label(label4.getText()), new Label(label5.getText()), returnButton3, compareButton, sortButton, nextButton);
             }
-
-
         });
 
 
@@ -206,28 +203,24 @@ public class Main extends Application {
         //Sort button that utilizes the QuickSort class
         sortButton.setOnAction(e -> {
             sortedWorkoutList = qs.quickSort(workoutList, 0, workoutList.size() - 1);
-
+            this.generateGenericAlert("Quick Sort", "Sorted Worked out based on title","");
+            viewWorkoutsLayout.getChildren().clear();
+            this.clearLabels();
+            this.generateLoadWorkoutView();
         });
-
-
-        // loads the file
-        loadWorkouts.setOnAction(e -> {
-            try {
-                this.readObjectFromFile();
-
-                this.generateGenericAlert("Uploaded new workout", "Uploaded new workout", "a new workout has been added.");
-
-                primaryStage.setScene(mainPageScene);
-                viewWorkoutsLayout.getChildren().clear();
-
-
-            } catch (ClassNotFoundException ex) {
-                ex.printStackTrace();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-
+        //button action that loads the workoutlist into a hashtable
+        findHighestMaxButton.setOnAction(e ->{
+            System.out.println("BST implementation");
+            for(Workout w: workoutList) {
+                bst.insert(w.OneRepMax());
+                workoutHashTable.put(w.OneRepMax(), w);
             }
+
+            String max = "Max rep of all workouts in the file: "+bst.maxValue(bst.root);
+            this.generateGenericAlert("High Rep Max", max,"");
+
         });
+
 
 
         //************************End of view workouts**********************************
@@ -359,8 +352,10 @@ public class Main extends Application {
             count(n); // recursion
         }
     }
+
     //method to set the workout labels for queue
     public static void setWorkoutLabels(){
+        //reusable set methods
         labelCounter.setText("\n\tWorkouts Left: " + queue.size());
         label.setText("\n\tWorkout: " + queue.peek().getTitle());
         label2.setText("\tReps: " + String.valueOf(queue.peek().getReps()));
@@ -368,7 +363,6 @@ public class Main extends Application {
         label4.setText("\tWeight: " + String.valueOf(queue.peek().getWeight()) + " lbs");
         label5.setText("\tOne Rep Max: " + String.valueOf(queue.peek().OneRepMax()) + " lbs");
     }
-
 
     // method to clear the queue data
     public static void clearLabels(){
@@ -380,10 +374,9 @@ public class Main extends Application {
         label5.setText("");
     }
 
+    //generates workout playlist
     public static void generateLoadWorkoutView(){
-
-
-        //checks workoutslist and loads if empty
+        //check if the workoutlist is zero. prompt user to upload a workout file. Otherwise load workout into the queue
         if (workoutList.size() == 0) {
             try {
                 readObjectFromFile();
@@ -398,19 +391,18 @@ public class Main extends Application {
             viewWorkoutsLayout.getChildren().addAll(new Label(labelCounter.getText()), new Label(label.getText()), new Label(label2.getText()), new Label(label3.getText()),
                     new Label(label4.getText()), new Label(label5.getText()));
 
-            viewWorkoutsLayout.getChildren().addAll(returnButton3, loadWorkouts, compareButton, sortButton, nextButton);
+            viewWorkoutsLayout.getChildren().addAll(returnButton3, compareButton, sortButton, nextButton, findHighestMaxButton);
             primaryStage.setScene(viewWorkoutsScene);
         }
 
 
     }
 
+    //method to create an alert
     public static void generateGenericAlert(String title, String header, String content){
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(content);
-
-
         alert.showAndWait();
     }
 
