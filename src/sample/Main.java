@@ -44,8 +44,7 @@ public class Main extends Application {
     static Button searchButton = new Button("Search");
 
 
-    Hashtable<Integer, Workout> workoutHashTable
-            = new Hashtable<Integer, Workout>();
+    Hashtable<Integer, Workout> workoutHashTable = new Hashtable<Integer, Workout>();
 
     static Alert alert = new Alert(Alert.AlertType.INFORMATION);
     static BinarySearchTree  bst = new BinarySearchTree();
@@ -196,8 +195,6 @@ public class Main extends Application {
         returnButton3.setOnAction(e -> {
             primaryStage.setScene(mainPageScene);
             viewWorkoutsLayout.getChildren().clear();
-
-
         });
 
         compareButton.setOnAction(e -> {
@@ -235,13 +232,14 @@ public class Main extends Application {
             for(Workout w: workoutList) {
                 workoutHashTable.put(w.OneRepMax(), w); //adds workout to hashtable with key = 1rep max and value = workout
             }
-
+            //k = one rep max... v = the whole workout
+            //if user enters a valid one rep max value
             if(bst.search(keyToFind)) {
                 workoutHashTable.forEach((k, v) -> {
-                    if(k == keyToFind){
-                        String header = "Results found:\n" + v.toString();
-                        this.generateGenericAlert("One Rep Max Result", header,"" );
-                        primaryStage.setScene(viewWorkoutsScene);
+                    if(k == keyToFind){ //locates the one rep max value in bst
+                        String header = "Results found:\n" + v.toString(); //prints out the whole workout associated with the one rep max
+                        this.generateGenericAlert("One Rep Max Result", header,"" ); // prints the workout in an alert
+                        primaryStage.setScene(viewWorkoutsScene); //
                     }
                 });
             } else {
